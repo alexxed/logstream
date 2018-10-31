@@ -61,13 +61,12 @@ class LogTailorCLI < Thor
   method_option(:color, :type => :boolean, :default => true, :desc => 'Turn on or off colorized lines.')
   method_option(:endpoint, :type => :string, :desc => 'The Cloud API URL to connect to.')
   method_option(:debug, :type => :boolean, :default => false, :desc => 'Turn on debugging.')
-  def tail(site, env)
+  def tail(url, msg)
     begin
       shows = Hash[options[:show].map { |s| s.split('=') }.map { |k,v| [k, Regexp.new(v)] }] rescue {}
       hides = Hash[options[:hide].map { |h| h.split('=') }.map { |k,v| [k, Regexp.new(v)] }] rescue {}
 
       begin
-        info = QuickCloudAPI.get("/sites/#{site}/envs/#{env}/logstream", { :endpoint => options[:endpoint] })
         logstream = Logstream::Client.new({ 
                                             :columns => options[:columns],
                                             :types => options[:types],
@@ -76,7 +75,7 @@ class LogTailorCLI < Thor
                                             :no_color => !options[:color],
                                             :debug => options[:debug],
                                           })
-        logstream.run(info['url'], info['msg'])
+        logstream.run(url, msg)
       rescue QuickCloudAPI::Error => e
         puts "Cloud API error: #{e.message}"
         exit(1)
